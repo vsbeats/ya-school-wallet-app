@@ -1,4 +1,4 @@
-# Приложение школы Node.js «Кошелёк»
+# Приложение школы Node.js «Кошелёк» [![Travis](https://travis-ci.org/vsbeats/ya-school-wallet-app.svg?branch=master)]()
 
 ## Install
 ```sh
