@@ -5,6 +5,12 @@
 npm i
 ```
 
+## Run tests (mocha & chai)
+```sh
+npm test
+```
+
+
 ## Run
 ```sh
 npm start

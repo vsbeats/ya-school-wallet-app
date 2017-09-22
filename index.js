@@ -6,7 +6,10 @@ const app = express()
 
 // Подключаем middlwares
 app.use(express.static('public'))
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.text())
+app.use(bodyParser.json({type: 'application/json'}))
 
 /**
  * Главная страница
@@ -59,7 +62,7 @@ app.get('/cards', (req, res) => {
  * Добавление карты в хранилище
  */
 app.post('/cards', (req, res) => {
-  fs.readFile('./source/cards.json', (err, data) => {
+  return fs.readFile('./source/cards.json', (err, data) => {
     if (err) return res.sendStatus(400)
 
     let cards = JSON.parse(data.toString())
@@ -109,3 +112,6 @@ app.delete('/cards/:id', (req, res) => {
 app.listen(3000, () => {
   console.log('YM Node School App listening on port 3000!')
 })
+
+// Для тестов экспортируем модуль приложения
+module.exports = app
