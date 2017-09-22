@@ -72,6 +72,26 @@ const bankUtils = {
       }
     }
     return formattedCardNumber.join('')
+  },
+
+  /**
+   * Производит валидацию по алгоритму Luhn
+   * @see https://ru.wikipedia.org/wiki/Алгоритм_Луна
+   * @param  {String} cardNumber номер карты
+   * @return {Boolean} результат валидации
+   */
+  validateCardNumberLuhn (cardNumber) {
+    let sum = 0
+    let parity = cardNumber.length % 2
+    for (let key in cardNumber) {
+      let digit = cardNumber[key]
+      if (key % 2 === parity) {
+        digit *= 2
+        if (digit > 9) digit -= 9
+      }
+      sum += parseInt(digit)
+    }
+    return sum % 10 === 0
   }
 }
 

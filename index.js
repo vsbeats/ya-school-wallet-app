@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const fs = require('fs')
 const promisify = require('util').promisify
 const { bufferToJSON } = require('./libs/utils').helpers
+const bankUtils = require('./libs/utils').bankUtils
 const storage = require('./libs/storage')
 const app = express()
 
@@ -73,17 +74,22 @@ app.post('/cards', (req, res) => {
     .then(bufferToJSON)
     .then((cards) => {
       let hasErrors = false
+      let cardNumber = req.body.cardNumber || ''
+      cardNumber = cardNumber.replace(/[^\d]/g, '')
 
       // Валидируем cardNumber
-      const validCardNumberRe = /^\d{16}$/
-      if (!validCardNumberRe.test(req.body.cardNumber)) {
+      const validCardNumberRe = /^\d{13,19}$/
+      if (
+        !validCardNumberRe.test(cardNumber) ||
+        !bankUtils.validateCardNumberLuhn(cardNumber)
+      ) {
         hasErrors = true
       }
 
       if (hasErrors) return res.sendStatus(400)
 
       let newCard = {
-        cardNumber: req.body.cardNumber,
+        cardNumber,
         balance: 0
       }
 
@@ -113,7 +119,7 @@ app.delete('/cards/:id', (req, res) => {
 
       cards.splice(id, 1)
 
-      writeFile('dasdasda', JSON.stringify(cards)).then(() => {
+      writeFile(storage.cards, JSON.stringify(cards)).then(() => {
         res.sendStatus(200)
       }).catch((err) => {
         console.log(err)

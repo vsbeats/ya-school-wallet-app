@@ -33,10 +33,9 @@ describe('Cards', () => {
 
   // Тест для POST запроса /cards
   describe('POST /cards', () => {
-    it('It should not add a card with invalid card number', (done) => {
-      // 15 цифр, валидно-16
+    it('It should not add a card with invalid card number (12 digits (13 min) & bad Luhn)', (done) => {
       let requestBody = {
-        cardNumber: '123456789012345'
+        cardNumber: '1234 5678 9012'
       }
       chai.request(server)
         .post('/cards')
@@ -50,7 +49,7 @@ describe('Cards', () => {
     it('It should add a card with valid card number', (done) => {
       // Валидный номер
       let requestBody = {
-        cardNumber: '8234567890123450'
+        cardNumber: '4561 2612 1234 5467'
       }
       chai.request(server)
         .post('/cards')
