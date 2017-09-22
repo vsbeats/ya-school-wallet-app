@@ -75,4 +75,10 @@ const bankUtils = {
   }
 }
 
-module.exports = bankUtils
+const helpers = {
+  bufferToJSON (buffer) {
+    return JSON.parse(buffer)
+  }
+}
+
+module.exports = { bankUtils, helpers }

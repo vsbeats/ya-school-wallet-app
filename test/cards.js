@@ -69,7 +69,7 @@ describe('Cards', () => {
       chai.request(server)
         .delete('/cards/5') // Всё равно перед каждым тестом очищаем БД, так что 5 никогда не попадётся
         .end((err, res) => {
-          res.should.have.status(400)
+          res.should.have.status(404)
           done()
         })
     })
@@ -88,7 +88,7 @@ describe('Cards', () => {
       chai.request(server)
         .delete('/cards/a')
         .end((err, res) => {
-          res.should.have.status(400)
+          res.should.have.status(404)
           done()
         })
     })

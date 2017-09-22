@@ -2,7 +2,13 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
+const promisify = require('util').promisify
+const { bufferToJSON } = require('./libs/utils').helpers
+const storage = require('./libs/storage')
 const app = express()
+
+const readFile = promisify(fs.readFile)
+const writeFile = promisify(fs.writeFile)
 
 // Подключаем middlwares
 app.use(express.static('public'))
@@ -50,41 +56,49 @@ app.get('/transfer', (req, res) => {
  * Получение всех карт из хранилища
  */
 app.get('/cards', (req, res) => {
-  fs.readFile('./source/cards.json', (err, data) => {
-    if (err) return res.sendStatus(400)
-    res.json(
-      JSON.parse(data.toString())
-    )
-  })
+  readFile(storage.cards)
+    .then(bufferToJSON)
+    .then(cards => res.json(cards))
+    .catch((err) => {
+      console.log(err)
+      res.sendStatus(400)
+    })
 })
 
 /**
  * Добавление карты в хранилище
  */
 app.post('/cards', (req, res) => {
-  return fs.readFile('./source/cards.json', (err, data) => {
-    if (err) return res.sendStatus(400)
+  readFile(storage.cards)
+    .then(bufferToJSON)
+    .then((cards) => {
+      let hasErrors = false
 
-    let cards = JSON.parse(data.toString())
-    let hasErrors = false
+      // Валидируем cardNumber
+      const validCardNumberRe = /^\d{16}$/
+      if (!validCardNumberRe.test(req.body.cardNumber)) {
+        hasErrors = true
+      }
 
-    // Валидируем cardNumber
-    const validCardNumberRe = /^\d{16}$/
-    if (!validCardNumberRe.test(req.body.cardNumber)) {
-      hasErrors = true
-    }
+      if (hasErrors) return res.sendStatus(400)
 
-    if (hasErrors) return res.sendStatus(400)
+      let newCard = {
+        cardNumber: req.body.cardNumber,
+        balance: 0
+      }
 
-    let newCard = {
-      cardNumber: req.body.cardNumber,
-      balance: 0
-    }
-    cards.push(newCard)
-    fs.writeFile('./source/cards.json', JSON.stringify(cards), (err) => {
-      res.sendStatus((err) ? 400 : 200)
+      cards.push(newCard)
+
+      writeFile(storage.cards, JSON.stringify(cards))
+        .then(() => res.sendStatus(200))
+        .catch((err) => {
+          console.log(err)
+          res.sendStatus(400)
+        })
+    }).catch((err) => {
+      console.log(err)
+      res.sendStatus(400)
     })
-  })
 })
 
 /**
@@ -92,18 +106,20 @@ app.post('/cards', (req, res) => {
  */
 app.delete('/cards/:id', (req, res) => {
   let id = req.params.id
-  fs.readFile('./source/cards.json', (err, data) => {
-    if (err) return res.sendStatus(400)
+  readFile(storage.cards)
+    .then(bufferToJSON)
+    .then((cards) => {
+      if (cards[id] === undefined) return res.status(404).send('Card not found')
 
-    let cards = JSON.parse(data.toString())
+      cards.splice(id, 1)
 
-    if (cards[id] === undefined) return res.sendStatus(400)
-
-    cards.splice(id, 1)
-    fs.writeFile('./source/cards.json', JSON.stringify(cards), (err) => {
-      res.sendStatus((err) ? 400 : 200)
+      writeFile('dasdasda', JSON.stringify(cards)).then(() => {
+        res.sendStatus(200)
+      }).catch((err) => {
+        console.log(err)
+        res.sendStatus(400)
+      })
     })
-  })
 })
 
 /**
