@@ -1,15 +1,9 @@
 // Импортируем библиотеки
 const express = require('express')
 const bodyParser = require('body-parser')
-const fs = require('fs')
-const promisify = require('util').promisify
-const { bufferToJSON } = require('./libs/utils').helpers
 const bankUtils = require('./libs/utils').bankUtils
 const storage = require('./libs/storage')
 const app = express()
-
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
 
 // Подключаем middlwares
 app.use(express.static('public'))
@@ -57,10 +51,11 @@ app.get('/transfer', (req, res) => {
  * Получение всех карт из хранилища
  */
 app.get('/cards', (req, res) => {
-  readFile(storage.cards)
-    .then(bufferToJSON)
-    .then(cards => res.json(cards))
-    .catch((err) => {
+  storage.cards.getAll()
+    .then(cards => {
+      res.json(cards)
+    })
+    .catch(err => {
       console.log(err)
       res.sendStatus(400)
     })
@@ -71,13 +66,13 @@ app.get('/cards', (req, res) => {
  */
 app.get('/cards/:id', (req, res) => {
   let id = req.params.id
-  readFile(storage.cards)
-    .then(bufferToJSON)
-    .then(cards => {
-      if (cards[id]) {
-        return res.json(cards[id])
-      }
-      res.status(404).send('Card not found')
+  storage.cards.getById(id)
+    .then(card => {
+      res.json(card)
+    })
+    .catch(err => {
+      console.log(err)
+      res.status(404).send(storage.cards.notFoundMsg)
     })
 })
 
@@ -85,23 +80,18 @@ app.get('/cards/:id', (req, res) => {
  * Добавление карты в хранилище
  */
 app.post('/cards', (req, res) => {
-  readFile(storage.cards)
-    .then(bufferToJSON)
-    .then((cards) => {
-      let hasErrors = false
+  storage.cards.getAll()
+    .then(cards => {
       let cardNumber = req.body.cardNumber || ''
       cardNumber = cardNumber.replace(/[^\d]/g, '')
 
-      // Валидируем cardNumber
       const validCardNumberRe = /^\d{13,19}$/
       if (
         !validCardNumberRe.test(cardNumber) ||
         !bankUtils.validateCardNumberLuhn(cardNumber)
       ) {
-        hasErrors = true
+        throw Error('Validation error')
       }
-
-      if (hasErrors) return res.sendStatus(400)
 
       let newCard = {
         cardNumber,
@@ -109,16 +99,13 @@ app.post('/cards', (req, res) => {
       }
 
       cards.push(newCard)
-
-      writeFile(storage.cards, JSON.stringify(cards))
-        .then(() => res.sendStatus(200))
-        .catch((err) => {
-          console.log(err)
-          res.sendStatus(400)
-        })
-    }).catch((err) => {
+      return cards
+    })
+    .then(cards => storage.cards.dump(cards))
+    .then(() => res.sendStatus(200))
+    .catch(err => {
       console.log(err)
-      res.sendStatus(400)
+      if (!res.headersSent) res.sendStatus(400)
     })
 })
 
@@ -126,20 +113,21 @@ app.post('/cards', (req, res) => {
  * Удаление карты из хранилища по ключу
  */
 app.delete('/cards/:id', (req, res) => {
-  let id = req.params.id
-  readFile(storage.cards)
-    .then(bufferToJSON)
-    .then((cards) => {
-      if (cards[id] === undefined) return res.status(404).send('Card not found')
-
+  const id = req.params.id
+  storage.cards.getAll()
+    .then(cards => {
+      if (cards[id] === undefined) {
+        res.status(404).send(storage.cards.notFoundMsg)
+        throw Error(storage.cards.notFoundMsg)
+      }
       cards.splice(id, 1)
-
-      writeFile(storage.cards, JSON.stringify(cards)).then(() => {
-        res.sendStatus(200)
-      }).catch((err) => {
-        console.log(err)
-        res.sendStatus(400)
-      })
+      return cards
+    })
+    .then(cards => storage.cards.dump(cards))
+    .then(() => res.sendStatus(200))
+    .catch(err => {
+      console.log(err)
+      if (!res.headersSent) res.sendStatus(400)
     })
 })
 

@@ -1,7 +1,7 @@
 const chai = require('chai')
 const chaiHttp = require('chai-http')
 const server = require('../index')
-const fs = require('fs')
+const storage = require('../libs/storage')
 
 chai.should()
 chai.use(chaiHttp)
@@ -10,10 +10,7 @@ chai.use(chaiHttp)
 describe('Cards', () => {
   beforeEach((done) => { // Перед каждым тестом чистим базу и добавляем 1 тестовую карту
     let cards = [ { cardNumber: '8123456789012345', balance: 0 } ]
-    fs.writeFile(`${__dirname}/../source/cards.json`, JSON.stringify(cards), (err) => {
-      if (err) return done(err)
-      done()
-    })
+    storage.cards.dump(cards).then(done).catch(err => done(err))
   })
 
   // Тест для GET запроса /cards
@@ -25,6 +22,21 @@ describe('Cards', () => {
           res.should.have.status(200)
           res.should.have.header('content-type', /application\/json/)
           res.body.should.be.a('array').that.lengthOf(1)
+          if (err) return done(err)
+          done()
+        })
+    })
+  })
+
+  // Тест для GET запроса /card/:id
+  describe('GET /cards/0', () => {
+    it('It should GET one card with ID 0 and return JSON', (done) => {
+      chai.request(server)
+        .get('/cards/0')
+        .end((err, res) => {
+          res.should.have.status(200)
+          res.should.have.header('content-type', /application\/json/)
+          res.body.should.be.a('object')
           if (err) return done(err)
           done()
         })
