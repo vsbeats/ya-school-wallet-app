@@ -67,6 +67,21 @@ app.get('/cards', (req, res) => {
 })
 
 /**
+ * Получение одной карты по id
+ */
+app.get('/cards/:id', (req, res) => {
+  let id = req.params.id
+  readFile(storage.cards)
+    .then(bufferToJSON)
+    .then(cards => {
+      if (cards[id]) {
+        return res.json(cards[id])
+      }
+      res.status(404).send('Card not found')
+    })
+})
+
+/**
  * Добавление карты в хранилище
  */
 app.post('/cards', (req, res) => {
@@ -133,6 +148,15 @@ app.delete('/cards/:id', (req, res) => {
  */
 app.listen(3000, () => {
   console.log('YM Node School App listening on port 3000!')
+})
+
+/**
+ * Логер ошибок
+ */
+app.use((err, req, res, next) => {
+  // пока просто console.log
+  console.log('Server error', err)
+  res.sendStatus(500)
 })
 
 // Для тестов экспортируем модуль приложения
