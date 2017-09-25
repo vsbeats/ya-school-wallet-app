@@ -27,7 +27,7 @@ const storage = {
       return this.getAll()
         .then(cards => {
           if (cards[id]) return cards[id]
-          throw Error('Card not found')
+          throw Error(this.notFoundMsg)
         })
     },
 

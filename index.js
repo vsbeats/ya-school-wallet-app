@@ -121,9 +121,8 @@ app.delete('/cards/:id', (req, res) => {
         throw Error(storage.cards.notFoundMsg)
       }
       cards.splice(id, 1)
-      return cards
+      return storage.cards.dump(cards)
     })
-    .then(cards => storage.cards.dump(cards))
     .then(() => res.sendStatus(200))
     .catch(err => {
       console.log(err)
