@@ -39,12 +39,25 @@ app.get('/error', (req, res) => {
  */
 app.get('/transfer', (req, res) => {
   const {amount, from, to} = req.query
-  res.json({
-    result: 'success',
-    amount,
-    from,
-    to
-  })
+  storage.cards.getAll()
+    .then(cards => {
+      if (cards[from] === undefined || cards[to] === undefined) {
+        res.status(404).send(storage.cards.notFoundMsg)
+        throw Error(storage.cards.notFoundMsg)
+      }
+      if (cards[from].balance < amount) {
+        res.status(400).send(storage.cards.notEnoughMsg)
+        throw Error(storage.cards.notEnoughMsg)
+      }
+      cards[from].balance -= parseInt(amount)
+      cards[to].balance += parseInt(amount)
+      return storage.cards.dump(cards)
+    })
+    .then(() => res.json({ result: 'success', amount, from, to }))
+    .catch(err => {
+      console.log(err)
+      if (!res.headersSent) res.sendStatus(400)
+    })
 })
 
 /**

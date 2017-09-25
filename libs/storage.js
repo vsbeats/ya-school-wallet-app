@@ -9,6 +9,7 @@ const storage = {
   cards: {
     path: path.resolve(__dirname, '../source/cards.json'),
     notFoundMsg: 'Card not found',
+    notEnoughMsg: 'Not enough money',
 
     /**
      * Получение всех карт
