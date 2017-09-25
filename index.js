@@ -52,9 +52,7 @@ app.get('/transfer', (req, res) => {
  */
 app.get('/cards', (req, res) => {
   storage.cards.getAll()
-    .then(cards => {
-      res.json(cards)
-    })
+    .then(cards => res.json(cards))
     .catch(err => {
       console.log(err)
       res.sendStatus(400)
@@ -67,9 +65,7 @@ app.get('/cards', (req, res) => {
 app.get('/cards/:id', (req, res) => {
   let id = req.params.id
   storage.cards.getById(id)
-    .then(card => {
-      res.json(card)
-    })
+    .then(card => res.json(card))
     .catch(err => {
       console.log(err)
       res.status(404).send(storage.cards.notFoundMsg)
@@ -99,9 +95,8 @@ app.post('/cards', (req, res) => {
       }
 
       cards.push(newCard)
-      return cards
+      return storage.cards.dump(cards)
     })
-    .then(cards => storage.cards.dump(cards))
     .then(() => res.sendStatus(200))
     .catch(err => {
       console.log(err)
