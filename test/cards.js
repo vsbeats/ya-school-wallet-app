@@ -1,6 +1,6 @@
 const chai = require('chai')
 const chaiHttp = require('chai-http')
-const server = require('../index')
+const server = require('../source/app')
 const storage = require('../libs/storage')
 
 chai.should()
@@ -67,7 +67,7 @@ describe('Cards', () => {
         .post('/cards')
         .send(requestBody)
         .end((err, res) => {
-          res.should.have.status(200)
+          res.should.have.status(201)
           if (err) return done(err)
           done()
         })
