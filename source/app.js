@@ -1,59 +1,37 @@
 // Импортируем библиотеки
-const express = require('express')
-const bodyParser = require('body-parser')
+const Koa = require('koa')
+const bodyParser = require('koa-bodyparser')()
+const router = require('koa-router')()
+const serve = require('koa-static')
+
 const cardsController = require('./controllers/cards')
+const transactionsController = require('./controllers/cards/transactions')
 
-const app = express()
+const app = new Koa()
 
-// Подключаем middlwares
-app.use(express.static('public'))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended: true}))
-app.use(bodyParser.text())
-app.use(bodyParser.json({type: 'application/json'}))
-
-/**
- * Главная страница
- */
-app.get('/', (req, res) => {
-  res.send(`<!doctype html>
-    <html>
-      <head>
-      <link rel="stylesheet" href="/style.css">
-    </head>
-    <body>
-      <h1>Hello Smolny!</h1>
-    </body>
-  </html>`)
+app.use(async (ctx, next) => {
+  const start = new Date()
+  await next()
+  const ms = new Date() - start
+  console.log(`${ctx.method} ${ctx.url} - ${ms}ms.`)
 })
 
-/**
- * Обработчик ошибки
- */
-app.get('/error', (req, res) => {
-  throw Error('Oops!')
+router.param('id', async (id, ctx, next) => {
+  ctx.cardId = id
+  await next()
 })
 
-app.get('/cards', cardsController.index)
-app.get('/cards/:id', cardsController.show)
-app.post('/cards', cardsController.store)
-app.delete('/cards/:id', cardsController.destroy)
+router.get('/cards', cardsController.index)
+router.post('/cards', cardsController.create)
+router.delete('/cards/:id', cardsController.remove)
 
-/**
- * Цепляем Express слушать порт
- */
-app.listen(3000, () => {
-  console.log('YM Node School App listening on port 3000!')
-})
+router.get('/cards/:id/transactions', transactionsController.index)
+router.post('/cards/:id/transactions', transactionsController.create)
 
-/**
- * Логер ошибок
- */
-app.use((err, req, res, next) => {
-  // пока просто console.log
-  console.log('Server error', err)
-  res.sendStatus(500)
-})
+app.listen(3000, () => console.log('YM Node School App listening on port 3000!'))
 
-// Для тестов экспортируем модуль приложения
+app.use(bodyParser)
+app.use(router.routes())
+app.use(serve('./public'))
+
 module.exports = app
