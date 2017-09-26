@@ -13,10 +13,10 @@ class FileModel extends Model {
     return await this._dataSource
   }
 
-  async create (card) {
-    this._dataSource.push(card)
+  async create (entity) {
+    this._dataSource.push(entity)
     await this._saveUpdates()
-    return card
+    return entity
   }
 
   async remove (id) {

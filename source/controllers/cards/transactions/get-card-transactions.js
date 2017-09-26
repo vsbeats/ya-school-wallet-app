@@ -1,3 +1,10 @@
+const TransactionsModel = require('../../../models/Transactions')
+
 module.exports = async (ctx) => {
-  ctx.body = await `Get card transactions to card with id ${ctx.cardId}`
+  let transactions = await new TransactionsModel().get(ctx.cardId)
+  if (transactions.length === 0) {
+    ctx.status = 404
+    return
+  }
+  ctx.body = transactions
 }

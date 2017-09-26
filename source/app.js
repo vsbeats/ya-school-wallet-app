@@ -17,7 +17,7 @@ app.use(async (ctx, next) => {
 })
 
 router.param('id', async (id, ctx, next) => {
-  ctx.cardId = id
+  ctx.cardId = parseInt(id)
   await next()
 })
 
