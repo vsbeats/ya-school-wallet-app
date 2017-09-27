@@ -1,3 +1,3 @@
-const CardsModel = require('../../models/Cards')
-
-module.exports = async function (ctx) { ctx.body = await new CardsModel().getAll() }
+module.exports = async (ctx) => {
+  ctx.body = await ctx.cardsModel.getAll()
+}

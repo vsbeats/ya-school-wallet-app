@@ -1,14 +1,7 @@
 [
     {
         "cardNumber": "4561261212345467",
-        "balance": "100"
-    },
-    {
-        "cardNumber": "4561261212345467",
-        "balance": "100"
-    },
-    {
-        "cardNumber": "4561261212345467",
-        "balance": "350"
+        "balance": "213",
+        "id": 1
     }
 ]
